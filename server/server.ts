@@ -7,6 +7,10 @@ import userRouter from './routes/userRoutes.js';
 import projectRouter from './routes/projectRoutes.js';
 
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -29,18 +33,19 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/user', userRouter)
 app.use('/api/project', projectRouter)
 
+const CLIENT_DIST_PATH = path.resolve(
+  __dirname,
+  "../../../client/dist"
+);
+
 // Serve frontend
 app.use(
-  express.static(
-    path.join(__dirname, "../../client/dist")
-  )
+  express.static(CLIENT_DIST_PATH)
 );
 
 // React Router fallback
 app.use((req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../../client/dist/index.html")
-  );
+  res.sendFile(path.join(CLIENT_DIST_PATH, "index.html"));
 });
 
 app.listen(port, '0.0.0.0', () => {
