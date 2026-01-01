@@ -23,6 +23,12 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 app.use(express.json({limit: '50mb'}))
 
+app.get('/', (req: Request, res: Response) => {
+    res.send('Server is Live!');
+});
+app.use('/api/user', userRouter)
+app.use('/api/project', projectRouter)
+
 // Serve frontend
 app.use(
   express.static(
@@ -31,17 +37,11 @@ app.use(
 );
 
 // React Router fallback
-app.get("/*", (_, res) => {
+app.use((req, res) => {
   res.sendFile(
     path.join(__dirname, "../../client/dist/index.html")
   );
 });
-
-app.get('/', (req: Request, res: Response) => {
-    res.send('Server is Live!');
-});
-app.use('/api/user', userRouter)
-app.use('/api/project', projectRouter)
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
