@@ -7,7 +7,6 @@ import userRouter from './routes/userRoutes.js';
 import projectRouter from './routes/projectRoutes.js';
 
 import path from "path";
-import { fileURLToPath } from "url";
 
 const app = express();
 
@@ -32,7 +31,7 @@ app.use(
 );
 
 // React Router fallback
-app.get("*", (_, res) => {
+app.get("/*", (_, res) => {
   res.sendFile(
     path.join(__dirname, "../../client/dist/index.html")
   );
