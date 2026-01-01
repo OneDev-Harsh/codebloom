@@ -33,7 +33,7 @@ const CLIENT_DIST_PATH = path.join(__dirname, "client");
 app.use(express.static(CLIENT_DIST_PATH));
 
 /* ---------- auth & APIs ---------- */
-app.all("/api/auth/:path(*)", toNodeHandler(auth));
+app.all("/api/auth", toNodeHandler(auth));
 app.use("/api/user", userRouter);
 app.use("/api/project", projectRouter);
 
