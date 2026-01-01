@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Project } from "../types";
 import { Loader2Icon, PlusIcon, TrashIcon, GlobeIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -155,13 +155,6 @@ const MyProjects = () => {
                       className="text-xs font-medium text-slate-300 hover:text-white transition"
                     >
                       Open
-                    </button>
-
-                    <button
-                      onClick={() => window.open(project.websiteUrl, "_blank")}
-                      className="flex items-center gap-1 text-xs font-medium text-slate-300 hover:text-white transition"
-                    >
-                      Website
                     </button>
                   </div>
                 </div>
