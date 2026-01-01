@@ -34,17 +34,6 @@ export default function AuthPage() {
             classNames={{
               base: "text-white",
               header: "hidden",
-              form: "space-y-4",
-              input:
-                "bg-white/5 border border-slate-800 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500",
-              button:
-                "bg-gradient-to-r from-[#CB52D4] to-indigo-600 hover:opacity-90 transition text-white font-medium",
-              link:
-                "text-indigo-400 hover:text-indigo-300 transition",
-              divider:
-                "border-slate-800 text-slate-500",
-              error:
-                "text-red-400 text-sm",
             }}
           />
         </div>

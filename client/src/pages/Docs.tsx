@@ -5,7 +5,6 @@ import {
   Rocket,
   CreditCard,
   Settings,
-  LifeBuoy,
 } from "lucide-react"
 
 const Docs = () => {

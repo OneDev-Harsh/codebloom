@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import type { Project } from "../types";
-import { Loader2Icon, GlobeIcon, HeartIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Loader2Icon} from "lucide-react";
 import api from "@/configs/axios";
 import { toast } from "sonner";
 
 const Community = () => {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
-  const navigate = useNavigate();
 
   const fetchProjects = async () => {
     try {
