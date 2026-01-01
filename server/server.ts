@@ -35,7 +35,7 @@ app.use('/api/project', projectRouter)
 
 const CLIENT_DIST_PATH = path.resolve(
   __dirname,
-  "../../../client/dist"
+  "client"
 );
 
 // Serve frontend
