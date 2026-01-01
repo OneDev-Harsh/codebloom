@@ -16,6 +16,16 @@ const app = express();
 
 const port = 3000;
 
+const CLIENT_DIST_PATH = path.resolve(
+  __dirname,
+  "client"
+);
+
+// Serve frontend
+app.use(
+  express.static(CLIENT_DIST_PATH)
+);
+
 const corsOptions = {
     origin: process.env.TRUSTED_ORIGINS?.split(',') || [],
     credentials: true,
@@ -27,21 +37,8 @@ app.all('/api/auth/{*any}', toNodeHandler(auth));
 
 app.use(express.json({limit: '50mb'}))
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Server is Live!');
-});
 app.use('/api/user', userRouter)
 app.use('/api/project', projectRouter)
-
-const CLIENT_DIST_PATH = path.resolve(
-  __dirname,
-  "client"
-);
-
-// Serve frontend
-app.use(
-  express.static(CLIENT_DIST_PATH)
-);
 
 // React Router fallback
 app.use((req, res) => {
