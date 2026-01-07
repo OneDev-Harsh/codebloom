@@ -4,6 +4,7 @@ import { BotIcon, EyeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import api from '@/configs/axios'
 import { toast } from 'sonner'
+import { PAGE_TEMPLATES } from '@/constants/pageTemplates'
 
 interface SidebarProps {
   isMenuOpen: boolean
@@ -23,6 +24,8 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
   
   const input = draft
   const setInput = setDraft
+
+  const [showTemplates, setShowTemplates] = useState(false)
 
 
   const fetchProject = async () => {
@@ -83,6 +86,41 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
       messageRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [project.conversation.length, isGenerating])
+
+  const applyTemplate = async (templateId: string) => {
+    if (isGenerating) return
+
+    try {
+      setIsGenerating(true)
+
+      // Close modal immediately for better UX
+      setShowTemplates(false)
+
+      const { data } = await api.post('/api/ai/apply-template', {
+        projectId: project.id,
+        templateId
+      })
+
+      toast.success(data?.message || 'Template applied')
+
+      // Fetch updated project AFTER AI finishes
+      await fetchProject()
+
+    } catch (error: any) {
+      console.error(error)
+      toast.error(
+        error?.response?.data?.message || 'Failed to apply template'
+      )
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  useEffect(() => {
+    if (isGenerating) {
+      setShowTemplates(false)
+    }
+  }, [isGenerating])
 
   return (
     <div
@@ -247,33 +285,248 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
         </div>
 
         {/* INPUT AREA */}
-        <form onSubmit={handleRevisions} className="border-t border-slate-800 p-3 bg-black/70">
-          <div className="flex items-end gap-2">
-            <textarea
-              value={input} 
-              onChange={(e) => setInput(e.target.value)}
-              rows={3}
-              placeholder="Describe changes or add new features..."
-              disabled={isGenerating}
-              className="flex-1 resize-none rounded-xl bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-400 outline-none focus:ring-2 ring-indigo-500 transition disabled:opacity-60"
-            />
+        <form
+          onSubmit={handleRevisions}
+          className="
+            border-t border-slate-800
+            bg-black/70
+            p-3
+          "
+        >
+          <div
+            className="
+              rounded-xl
+              border border-slate-800
+              bg-black/80
+              p-3
+              space-y-3
+            "
+          >
+            {/* TEMPLATE PICKER */}
+            <div className="relative">
+              <button
+                disabled={isGenerating}
+                type="button"
+                onClick={() => setShowTemplates(true)}
+                className="
+                  inline-flex items-center gap-1.5
+                  text-xs font-medium
+                  text-indigo-400
+                  hover:text-indigo-300
+                  transition
+                  disabled:opacity-50
+                "
+              >
+                Browse templates
+              </button>
 
-            <button
-              disabled={isGenerating || !input.trim()}
-              className="flex h-10 w-10 items-center justify-center rounded-lg
-                         bg-gradient-to-r from-[#CB52D4] to-indigo-600
-                         hover:opacity-90 active:scale-95 transition disabled:opacity-60"
-            >
-              {isGenerating ? (
-                <Loader2Icon className="animate-spin" size={16} />
-              ) : (
-                <SendIcon size={16} />
+              {showTemplates && (
+                <div
+                  className="
+                    absolute left-0 right-0 z-20 mt-2
+                    rounded-lg
+                    border border-slate-800
+                    bg-black/90
+                    shadow-xl
+                    p-1
+                    space-y-1
+                  "
+                >
+                  {PAGE_TEMPLATES.map(template => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      disabled={isGenerating}
+                      onClick={() => applyTemplate(template.id)}
+                      className="
+                        w-full rounded-md
+                        px-3 py-2
+                        text-left
+                        transition
+                        hover:bg-white/10
+                        disabled:opacity-50
+                      "
+                    >
+                      <p className="text-sm font-medium text-slate-200">
+                        {template.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {template.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
               )}
-            </button>
+            </div>
+
+            {/* TEXTAREA + SEND */}
+            <div className="flex items-end gap-2">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                rows={3}
+                placeholder="Describe changes or add new features..."
+                disabled={isGenerating}
+                className="
+                  flex-1 resize-none
+                  rounded-lg
+                  bg-white/5
+                  px-4 py-3
+                  text-sm text-white
+                  placeholder-slate-400
+                  outline-none
+                  focus:ring-2 focus:ring-indigo-500/60
+                  transition
+                  disabled:opacity-60
+                "
+              />
+
+              <button
+                type="submit"
+                disabled={isGenerating || !input.trim()}
+                className="
+                  flex h-10 w-10 shrink-0
+                  items-center justify-center
+                  rounded-lg
+                  bg-gradient-to-r from-[#CB52D4] to-indigo-600
+                  text-white
+                  shadow-[0_6px_20px_-8px_rgba(99,102,241,0.8)]
+                  transition
+                  hover:opacity-90
+                  active:scale-95
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
+              >
+                {isGenerating ? (
+                  <Loader2Icon size={16} className="animate-spin" />
+                ) : (
+                  <SendIcon size={16} />
+                )}
+              </button>
+            </div>
           </div>
         </form>
 
       </div>
+
+      {showTemplates && (
+  <div
+    className="
+      fixed inset-0 z-50
+      flex items-center justify-center
+      bg-black/70 backdrop-blur-sm
+      animate-fade-in
+    "
+    onClick={() => setShowTemplates(false)}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        w-[420px] max-w-[92vw]
+        max-h-[85vh]
+        rounded-2xl
+        border border-slate-800
+        bg-black/90
+        shadow-[0_20px_80px_-20px_rgba(0,0,0,0.9)]
+        p-5
+        flex flex-col
+        animate-scale-in
+      "
+    >
+      {/* HEADER */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-slate-200">
+          Choose a page template
+        </h3>
+
+        <button
+          onClick={() => setShowTemplates(false)}
+          className="
+            rounded-md p-1
+            text-slate-400
+            hover:text-white
+            hover:bg-white/10
+            transition
+          "
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* TEMPLATE LIST */}
+      <div
+        className="
+          relative
+          flex-1
+          overflow-y-auto
+          pr-1
+          space-y-3
+          scrollbar-thin
+          scrollbar-track-transparent
+          scrollbar-thumb-slate-700/60
+          hover:scrollbar-thumb-slate-600
+        "
+      >
+        {/* TOP FADE */}
+        <div className="pointer-events-none sticky top-0 h-6 bg-gradient-to-b from-black/90 to-transparent z-10" />
+
+        {PAGE_TEMPLATES.map(template => (
+          <button
+            key={template.id}
+            disabled={isGenerating}
+            onClick={() => applyTemplate(template.id)}
+            className="
+              w-full
+              rounded-2xl
+              border border-slate-800
+              bg-gradient-to-br from-white/5 to-white/[0.02]
+              p-4
+              text-left
+              transition-all duration-300
+              hover:-translate-y-0.5
+              hover:border-indigo-500/40
+              hover:bg-indigo-500/10
+              hover:shadow-[0_12px_40px_-12px_rgba(99,102,241,0.6)]
+              active:scale-[0.98]
+              disabled:opacity-50
+              group
+            "
+          >
+            {/* PREVIEW */}
+            <div
+              className="
+                mb-3 h-24 w-full
+                rounded-xl
+                bg-gradient-to-br from-slate-800 to-slate-900
+                border border-slate-700/50
+                flex items-center justify-center
+                text-xs text-slate-500
+                group-hover:text-indigo-300
+                transition
+              "
+            >
+              Template Preview
+            </div>
+
+            {/* TEXT */}
+            <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition">
+              {template.name}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 group-hover:text-slate-300 transition">
+              {template.description}
+            </p>
+          </button>
+        ))}
+
+        {/* BOTTOM FADE */}
+        <div className="pointer-events-none sticky bottom-0 h-6 bg-gradient-to-t from-black/90 to-transparent z-10" />
+      </div>
+    </div>
+  </div>
+)}
+
+
     </div>
   )
 }

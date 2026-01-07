@@ -1,6 +1,6 @@
 import express from "express"
 import { protect } from "../middlewares/auth.js"
-import { explainSection, improvePage, suggestImprovements } from "../controllers/aiController.js"
+import { applyTemplate, explainSection, improvePage, suggestImprovements } from "../controllers/aiController.js"
 
 const aiRouter = express.Router()
 
@@ -16,5 +16,6 @@ aiRouter.get("/ping", (_req, res) => {
 aiRouter.post("/suggest-improvements", protect, suggestImprovements)
 aiRouter.post("/explain-section", protect, explainSection)
 aiRouter.post("/improve-page", protect, improvePage)
+aiRouter.post("/apply-template", protect, applyTemplate)
 
 export default aiRouter

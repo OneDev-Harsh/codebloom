@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import openai from '../configs/openai.js';
+import { pageTemplates } from "../templates/pages/index.js"
+import prisma from '../lib/prisma.js';
 
 export const explainSection = async (req: Request, res: Response) => {
   try {
@@ -261,5 +263,111 @@ export const improvePage = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Improve page error:', error)
     res.status(500).json({ message: 'Failed to improve page' })
+  }
+}
+
+export const applyTemplate = async (req: Request, res: Response) => {
+  try {
+    const { projectId, templateId } = req.body
+
+    if (!projectId || !templateId) {
+      return res.status(400).json({ message: "Missing projectId or templateId" })
+    }
+
+    // 1️⃣ Fetch project
+    const project = await prisma.websiteProject.findUnique({
+      where: { id: projectId },
+      select: {
+        id: true,
+        current_code: true,
+        initial_prompt: true
+      }
+    })
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" })
+    }
+
+    // 2️⃣ Find template
+    const template = pageTemplates.find(t => t.id === templateId)
+
+    if (!template) {
+      return res.status(404).json({ message: "Template not found" })
+    }
+
+    // 3️⃣ AI regeneration prompt
+    const aiResponse = await openai.chat.completions.create({
+      model: "mistralai/devstral-2512:free",
+      temperature: 0.4,
+      messages: [
+        {
+          role: "system",
+          content: `
+          You are a senior web designer and frontend engineer.
+
+          Rules:
+          - Use the provided template structure
+          - Preserve the existing page intent and content
+          - Improve layout consistency and spacing
+          - Do NOT remove meaningful sections
+          - Do NOT explain anything
+          - Output ONLY valid HTML
+          `
+        },
+        {
+          role: "user",
+          content: `
+          Existing page HTML:
+          <<<
+          ${project.current_code}
+          >>>
+
+          Original user intent:
+          "${project.initial_prompt}"
+
+          Template structure to use:
+          <<<
+          ${template.code}
+          >>>
+
+          Task:
+          Regenerate the page using the template while preserving content and intent.
+          `
+        }
+      ]
+    })
+
+    const regeneratedCode = aiResponse.choices[0]?.message?.content?.trim()
+
+    if (!regeneratedCode) {
+      throw new Error("AI returned empty response")
+    }
+
+    // 4️⃣ Save new version (history-safe)
+    await prisma.version.create({
+      data: {
+        projectId: project.id,
+        code: regeneratedCode
+      }
+    })
+
+    // 5️⃣ Update project pointer
+    await prisma.websiteProject.update({
+      where: { id: project.id },
+      data: {
+        current_code: regeneratedCode
+      }
+    })
+
+    return res.json({
+      message: "Template applied via AI regeneration",
+      success: true
+    })
+
+  } catch (error) {
+    console.error("Apply template error:", error)
+    return res.status(500).json({
+      message: "Failed to apply template"
+    })
   }
 }

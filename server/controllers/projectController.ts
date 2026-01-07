@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
 import openai from '../configs/openai.js';
+import { pageTemplates } from '../templates/pages/index.js';
 
 export const makeRevision = async (req: Request, res: Response) => {
     const userId = req.userId;
@@ -326,4 +327,33 @@ export const saveProjectCode = async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: "Internal Server Error" });
     }
+}
+
+export const applyTemplate = async (req: Request, res: Response) => {
+  const { projectId, templateId } = req.body
+
+  const template = pageTemplates.find(t => t.id === templateId)
+
+  if (!template) {
+    return res.status(404).json({ message: 'Template not found' })
+  }
+
+  await prisma.websiteProject.update({
+    where: { id: projectId },
+    data: {
+      current_code: template.code
+    }
+  })
+
+  await prisma.version.create({
+    data: {
+      projectId,
+      code: template.code,
+      description: `Applied template: ${template.name}`
+    }
+  })
+
+  res.json({
+    message: `Template "${template.name}" applied`
+  })
 }
