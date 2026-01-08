@@ -3,7 +3,7 @@ import { twMerge } from "tailwind-merge"
 import { diffWords } from "diff"
 
 export const diffText = (oldText = "", newText = "") => {
-  diffWords(oldText, newText)
+  return diffWords(oldText, newText)
 }
 
 export const diffStyles = (
