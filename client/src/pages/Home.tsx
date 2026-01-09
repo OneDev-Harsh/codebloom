@@ -14,6 +14,10 @@ const Home = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [htmlInput, setHtmlInput] = useState("")
+  const [importing, setImporting] = useState(false)
+
   const navigate = useNavigate()
 
   const getCredits = async () => {
@@ -56,6 +60,31 @@ const Home = () => {
       getCredits()
     }
   }, [session?.user])
+
+  const handleImportHtml = async () => {
+    try {
+      if (!session?.user) {
+        return toast.error("You need to be signed in")
+      }
+
+      if (!htmlInput.trim()) {
+        return toast.error("Please paste your HTML code")
+      }
+
+      setImporting(true)
+
+      const { data } = await api.post('/api/user/project/import-html', {
+        html: htmlInput,
+      })
+
+      toast.success("HTML imported successfully")
+      navigate(`/projects/${data.projectId}`)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error.message)
+    } finally {
+      setImporting(false)
+    }
+  }
 
   return (
     <section className="relative flex flex-col items-center px-4 pb-28 pt-32 text-white font-poppins overflow-hidden">
@@ -148,50 +177,72 @@ const Home = () => {
         </span>
       )}
 
-      {/* CTA */}
-      {!session?.user ? (
-        <button
-          type="button"
-          onClick={() => navigate("/auth/signin")}
-          className="
-            flex items-center gap-2
-            rounded-md
-            bg-gradient-to-r from-[#CB52D4] to-indigo-600
-            px-5 py-2
-            text-sm font-medium
-            shadow-[0_8px_30px_-10px_rgba(99,102,241,0.8)]
-            hover:opacity-90
-            transition
-          "
-        >
-          Sign in to get started
-        </button>
-      ) : (
-        <button
-          type="submit"
-          disabled={loading || credits < 5}
-          className="
-            flex items-center gap-2
-            rounded-md
-            bg-gradient-to-r from-[#CB52D4] to-indigo-600
-            px-5 py-2
-            text-sm font-medium
-            shadow-[0_8px_30px_-10px_rgba(99,102,241,0.8)]
-            hover:opacity-90
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition
-          "
-        >
-          {!loading ? (
-            "Create with AI"
-          ) : (
-            <>
-              Generating
-              <Loader2Icon className="size-4 animate-spin" />
-            </>
+      <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+
+        {/* ACTION BUTTONS */}
+        <div className="flex items-center gap-2">
+          {session?.user && (
+            <button
+              type="button"
+              onClick={() => setShowImportModal(true)}
+              className="
+                rounded-md
+                border border-indigo-500/30
+                bg-white/5
+                px-4 py-2
+                text-sm text-indigo-300
+                hover:bg-indigo-500/20 hover:text-white
+                transition
+              "
+            >
+              Import HTML
+            </button>
           )}
-        </button>
-      )}
+
+          {!session?.user ? (
+            <button
+              type="button"
+              onClick={() => navigate("/auth/signin")}
+              className="
+                rounded-md
+                bg-gradient-to-r from-[#CB52D4] to-indigo-600
+                px-5 py-2
+                text-sm font-medium
+                text-white
+                shadow-[0_8px_30px_-10px_rgba(99,102,241,0.8)]
+                hover:opacity-90
+                transition
+              "
+            >
+              Sign in to get started
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={loading || credits < 5}
+              className="
+                rounded-md
+                bg-gradient-to-r from-[#CB52D4] to-indigo-600
+                px-5 py-2
+                text-sm font-medium
+                text-white
+                shadow-[0_8px_30px_-10px_rgba(99,102,241,0.8)]
+                hover:opacity-90
+                disabled:opacity-50 disabled:cursor-not-allowed
+                transition
+              "
+            >
+              {!loading ? "Create with AI" : (
+                <>
+                  Generating
+                  <Loader2Icon className="ml-1 size-4 animate-spin" />
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
     </div>
   </form>
 
@@ -199,6 +250,100 @@ const Home = () => {
   <p className="mt-6 text-xs text-slate-500">
     Websites are generated privately and saved to your dashboard.
   </p>
+
+  {showImportModal && (
+    <div
+      className="
+        fixed inset-0 z-50
+        flex items-center justify-center
+        bg-black/70 backdrop-blur-sm
+        animate-fade-in
+      "
+      onClick={() => setShowImportModal(false)}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="
+          w-[520px] max-w-[92vw]
+          rounded-2xl
+          border border-slate-800
+          bg-black/90
+          shadow-[0_20px_80px_-20px_rgba(0,0,0,0.9)]
+          p-6
+          animate-scale-in
+        "
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-slate-200">
+            Import existing HTML
+          </h3>
+          <button
+            onClick={() => setShowImportModal(false)}
+            className="text-slate-400 hover:text-white transition"
+          >
+            ✕
+          </button>
+        </div>
+
+        <p className="mb-3 text-xs text-slate-400">
+          Paste your existing HTML. You can refine it using AI, preview it,
+          and export the improved version.
+        </p>
+
+        <textarea
+          value={htmlInput}
+          onChange={(e) => setHtmlInput(e.target.value)}
+          rows={8}
+          placeholder="<!DOCTYPE html>..."
+          className="
+            w-full resize-none
+            rounded-lg
+            bg-white/5
+            px-4 py-3
+            text-sm text-white
+            placeholder-slate-400
+            outline-none
+            focus:ring-2 focus:ring-indigo-500/60
+            transition
+          "
+        />
+
+        <div className="mt-4 flex items-center justify-end gap-2">
+          <button
+            onClick={() => setShowImportModal(false)}
+            className="text-sm text-slate-400 hover:text-white transition"
+          >
+            Cancel
+          </button>
+
+          <button
+            onClick={handleImportHtml}
+            disabled={importing}
+            className="
+              rounded-md
+              bg-gradient-to-r from-[#CB52D4] to-indigo-600
+              px-5 py-2
+              text-sm font-medium
+              text-white
+              shadow-[0_8px_30px_-10px_rgba(99,102,241,0.8)]
+              hover:opacity-90
+              disabled:opacity-50
+              transition
+            "
+          >
+            {importing ? (
+              <>
+                Importing
+                <Loader2Icon className="ml-1 size-4 animate-spin" />
+              </>
+            ) : (
+              "Import & Open Editor"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
 
 </section>
  

@@ -5,6 +5,7 @@ import { role } from 'better-auth/plugins';
 import  {razorpay } from "../lib/razorpay.js"
 import { CREDIT_PLANS, type PlanId } from "../constants/creditPlans.js"
 import crypto from "crypto"
+import { sanitizeHtml } from '../utils/sanitizeHtml.js';
 
 export const getUserCredits = async (req: Request, res: Response) => {
     try {
@@ -452,3 +453,68 @@ export const toggleProjectLike = async (req: Request, res: Response) => {
   }
 }
 
+export const importHtmlProject = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId
+    const { html } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" })
+    }
+
+    if (!html || typeof html !== "string") {
+      return res.status(400).json({ message: "HTML is required" })
+    }
+
+    if (html.length > 100_000) {
+      return res.status(400).json({ message: "HTML too large" })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { credits: true }
+    })
+
+    if (!user || user.credits < 5) {
+      return res.status(403).json({ message: "Insufficient credits" })
+    }
+
+    // 🔐 Sanitize
+    const safeHtml = sanitizeHtml(html)
+
+    // 🧱 Create project
+    const project = await prisma.websiteProject.create({
+      data: {
+        userId,
+        name: `Imported HTML • ${new Date().toLocaleDateString()}`,
+        initial_prompt: "Imported HTML",
+        current_code: safeHtml,
+        //mode: "CLASSIC"
+      }
+    })
+
+    // 🧾 Create first version
+    await prisma.version.create({
+      data: {
+        projectId: project.id,
+        code: safeHtml,
+        //versionIndex: 0,
+        description: "Initial imported HTML"
+      }
+    })
+
+    // 💳 Deduct credits
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        credits: { decrement: 5 }
+      }
+    })
+
+    return res.json({ projectId: project.id })
+
+  } catch (error) {
+    console.error("Import HTML error:", error)
+    return res.status(500).json({ message: "Failed to import HTML" })
+  }
+}
