@@ -1,6 +1,6 @@
 import express from 'express'
 import { protect } from '../middlewares/auth.js';
-import { applyTemplate, deleteProject, getProjectById, getProjectPreview, getPublishedProjects, makeRevision, rollbackToVersion, saveProjectCode } from '../controllers/projectController.js';
+import { applyTemplate, componentsToHtml, deleteProject, getProjectById, getProjectPreview, getPublishedProjects, htmlToComponents, makeRevision, rollbackToVersion, saveProjectCode } from '../controllers/projectController.js';
 
 const projectRouter = express.Router();
 
@@ -13,5 +13,8 @@ projectRouter.get('/published', getPublishedProjects)
 projectRouter.get('/published/:projectId', getProjectById)
 
 projectRouter.post('/apply-template', protect, applyTemplate)
+
+projectRouter.post('/html-to-components', protect, htmlToComponents)
+projectRouter.post('/components-to-html', protect, componentsToHtml)
 
 export default projectRouter

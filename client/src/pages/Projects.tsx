@@ -19,6 +19,7 @@ import ProjectPreview, { type ProjectPreviewRef } from '../components/ProjectPre
 import api from '@/configs/axios'
 import { toast } from 'sonner'
 import { authClient } from '@/lib/auth-client'
+import VisualBuilder from '@/components/VisualBuilder'
 
 const Projects = () => {
 
@@ -37,6 +38,10 @@ const Projects = () => {
   const [revisionDraft, setRevisionDraft] = useState('')
 
   const [improvingPage, setImprovingPage] = useState(false)
+
+  const [isVisualBuilder, setIsVisualBuilder] = useState(false)
+  const [componentTree, setComponentTree] = useState<any | null>(null)
+  const [isConverting, setIsConverting] = useState(false)
 
   const previewRef = useRef<ProjectPreviewRef>(null)
 
@@ -80,16 +85,47 @@ const Projects = () => {
   }
 
   const saveProject = async () => {
-    if(!previewRef.current) return
+    if (isVisualBuilder) {
+      if (!componentTree) return
+
+      try {
+        setIsSaving(true)
+
+        const { data } = await api.post(
+          "/api/project/components-to-html",
+          { 
+            tree: componentTree,
+            originalHtml: project?.current_code
+          }
+        )
+
+        await api.put(`/api/project/save/${projectId}`, {
+          code: data.html,
+        })
+
+        toast.success("Visual changes saved")
+        setIsVisualBuilder(false)
+        fetchProject()
+
+      } catch (err) {
+        toast.error("Failed to save visual changes")
+      } finally {
+        setIsSaving(false)
+      }
+
+      return
+    }
+
+    // Existing save logic
+    if (!previewRef.current) return
     const code = previewRef.current.getCode()
-    if(!code) return
+    if (!code) return
     setIsSaving(true)
     try {
-      const {data} = await api.put(`/api/project/save/${projectId}`, {code})
+      const { data } = await api.put(`/api/project/save/${projectId}`, { code })
       toast.success(data.message)
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message)
-      console.log(error)
     } finally {
       setIsSaving(false)
     }
@@ -216,6 +252,48 @@ const Projects = () => {
         {/* RIGHT */}
         <div className="flex items-center gap-1 sm:gap-3">
           <button
+            onClick={async () => {
+              if (isVisualBuilder) {
+                setIsVisualBuilder(false)
+                return
+              }
+
+              if (!project?.current_code) {
+                toast.error("No code to convert")
+                return
+              }
+
+              try {
+                setIsConverting(true)
+
+                const { data } = await api.post(
+                  "/api/project/html-to-components",
+                  { html: project.current_code }
+                )
+
+                setComponentTree(data.tree)
+                setIsVisualBuilder(true)
+
+                toast.success("Visual Builder enabled")
+              } catch (err) {
+                toast.error("Failed to open Visual Builder")
+              } finally {
+                setIsConverting(false)
+              }
+            }}
+            disabled={isConverting}
+            className="flex items-center gap-2 rounded-md bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 transition disabled:opacity-50"
+          >
+            {isConverting ? (
+              <Loader2Icon size={16} className="animate-spin" />
+            ) : (
+              <span></span>
+            )}
+            <span className="hidden sm:inline">
+              {isVisualBuilder ? "Exit Builder" : "Visual Builder"}
+            </span>
+          </button>
+          <button
             onClick={saveProject}
             disabled={isSaving}
             className="flex items-center gap-2 rounded-md bg-white/5 px-2 sm:px-3 py-1.5 text-sm hover:bg-white/10 transition disabled:opacity-60"
@@ -275,13 +353,20 @@ const Projects = () => {
 
         {/* PREVIEW CANVAS */}
         <div className="flex-1 relative overflow-hidden">
-          <ProjectPreview
-            ref={previewRef}
-            project={project}
-            isGenerating={isGenerating}
-            device={device}
-            setRevisionDraft={setRevisionDraft}
-          />
+          {isVisualBuilder && componentTree ? (
+            <VisualBuilder
+              tree={componentTree}
+              setTree={setComponentTree}
+            />
+          ) : (
+            <ProjectPreview
+              ref={previewRef}
+              project={project}
+              isGenerating={isGenerating}
+              device={device}
+              setRevisionDraft={setRevisionDraft}
+            />
+          )}
         </div>
       </div>
     </div>

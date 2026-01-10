@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma.js';
 import openai from '../configs/openai.js';
 import { pageTemplates } from '../templates/pages/index.js';
+import { parseHtmlToTree } from '../services/editor/htmlParser.js';
+import { renderTreeToHtml } from '../services/editor/componentRenderer.js';
 
 export const makeRevision = async (req: Request, res: Response) => {
     const userId = req.userId;
@@ -356,4 +358,98 @@ export const applyTemplate = async (req: Request, res: Response) => {
   res.json({
     message: `Template "${template.name}" applied`
   })
+}
+
+export const htmlToComponents = async (req: Request, res: Response) => {
+  try {
+    const { html } = req.body
+
+    if (!html || typeof html !== "string") {
+      return res.status(400).json({ message: "HTML is required" })
+    }
+
+    const tree = parseHtmlToTree(html)
+
+    return res.json({ tree })
+
+  } catch (err) {
+    console.error("HTML → components failed:", err)
+    return res.status(500).json({ message: "Failed to convert HTML" })
+  }
+}
+
+export const componentsToHtml = async (req: Request, res: Response) => {
+  const { tree, originalHtml } = req.body
+
+  if (!originalHtml || !originalHtml.includes("<html")) {
+    return res.status(400).json({ message: "Invalid original HTML" })
+  }
+
+  // 1️⃣ Rebuild BODY from tree (deterministic)
+  const rebuiltBody = renderTreeToHtml(tree)
+
+  // 2️⃣ Preserve HEAD + BODY ATTRS
+  const headMatch = originalHtml.match(/<head[\s\S]*?>[\s\S]*?<\/head>/i)
+  const bodyAttrsMatch = originalHtml.match(/<body([^>]*)>/i)
+
+  const head = headMatch ? headMatch[0] : "<head></head>"
+  const bodyAttrs = bodyAttrsMatch ? bodyAttrsMatch[1] : ""
+
+  const rebuiltHtml = `
+<!DOCTYPE html>
+<html lang="en">
+  ${head}
+  <body${bodyAttrs}>
+    ${rebuiltBody}
+  </body>
+</html>
+`.trim()
+
+  // 3️⃣ AI STYLE TRANSFER (CONTROLLED)
+  const aiResponse = await openai.chat.completions.create({
+    model: "mistralai/devstral-2512:free",
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content: `
+You are an HTML diff-and-transfer engine.
+
+RULES (VERY IMPORTANT):
+- DO NOT change structure
+- DO NOT add or remove elements
+- DO NOT rename or invent classes
+- DO NOT modify text content
+- ONLY copy class, style, and attributes
+- Output ONLY valid HTML
+        `,
+      },
+      {
+        role: "user",
+        content: `
+ORIGINAL HTML (source of truth):
+${originalHtml}
+
+REBUILT HTML (structure updated):
+${rebuiltHtml}
+
+TASK:
+Make the rebuilt HTML visually IDENTICAL to the original HTML
+by transferring styles and attributes ONLY.
+        `,
+      },
+    ],
+  })
+
+  const finalHtml =
+    aiResponse.choices[0]?.message?.content?.trim() || rebuiltHtml
+
+  // 4️⃣ Final safety check
+  if (!finalHtml.includes("<html")) {
+    return res.status(500).json({
+      message: "AI returned invalid HTML",
+    })
+  }
+
+  return res.json({ html: finalHtml })
 }
