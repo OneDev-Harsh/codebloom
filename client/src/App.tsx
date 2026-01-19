@@ -24,12 +24,6 @@ const App = () => {
   return (
     <div >
       {/* GLOBAL BACKGROUND */}
-      {/*<img
-        src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/refs/heads/main/assets/hero/bg-gradient-2.png"
-        alt=""
-        className="fixed inset-0 -z-10 w-full h-full object-cover opacity-30 pointer-events-none"
-      />
-      */}
 
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <video

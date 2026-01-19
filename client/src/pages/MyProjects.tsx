@@ -79,8 +79,7 @@ const MyProjects = () => {
               <div
                 key={project.id}
                 onClick={() => navigate(`/projects/${project.id}`)}
-                className="group relative cursor-pointer rounded-2xl border border-slate-800 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-4 transition
-                          hover:border-indigo-500/50 hover:shadow-[0_10px_40px_-15px_rgba(99,102,241,0.45)]"
+                className="group relative cursor-pointer rounded-2xl border border-slate-800 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-4 transition hover:border-indigo-500/50 hover:shadow-[0_10px_40px_-15px_rgba(99,102,241,0.45)]"
               >
                 {/* DELETE BUTTON — FIXED */}
                 <button
@@ -179,7 +178,8 @@ const MyProjects = () => {
           </div>
 
           <h1 className="text-xl font-semibold tracking-tight">
-            No projects yet
+            Your first website is 1 prompt away.
+            Most users publish their first site in under 3 minutes.
           </h1>
 
           <p className="mt-2 text-sm text-slate-400 max-w-sm">
