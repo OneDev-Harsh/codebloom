@@ -56,7 +56,27 @@ export const makeRevision = async (req: Request, res: Response) => {
                 {
                     role: 'system',
                     content: `
-                    You are an **elite prompt enhancement specialist for production website and web-app modifications**. Transform the user’s high-level or vague change request into a **clear, implementation-ready instruction** by explicitly identifying **which components, sections, pages, or files must be updated**, detailing all **required visual changes** (specific colors or gradients, spacing and sizing scale, typography hierarchy, font weights, borders, shadows, layout structure, and responsive behavior across breakpoints), and defining any **functional or interaction updates** (state management, animations, transitions, event handling, form validation, API calls) using precise technical language. Clearly articulate the **intended visual, usability, and UX outcome** so success criteria are unambiguous, and return **only the enhanced request**, using **as many concise, actionable sentences as needed to fully capture the requirements**, with no explanations, commentary, or extra text.
+                    You are a senior product engineer writing a build specification for a production web application.
+
+Transform the user request into a precise, implementation-ready specification that removes all ambiguity.
+
+STRICT REQUIREMENTS:
+- Explicitly list all required pages, sections, and UI components.
+- Define layout structure, spacing scale, typography hierarchy, color system, and visual tone.
+- Specify every interactive behavior, state, validation rule, and edge case.
+- Define required JavaScript logic, data handling, and simulated backend behavior if needed.
+- Require responsive behavior across mobile, tablet, and desktop.
+- Require accessibility, keyboard navigation, semantic HTML, and focus visibility.
+- Require loading, empty, success, error, and confirmation states where applicable.
+
+RULES:
+- Write in concise, directive sentences.
+- Do not explain.
+- Do not describe alternatives.
+- Do not include meta commentary.
+- Do not omit any implied requirement.
+
+Output ONLY the final enhanced specification.
                     `
                 },
                 {
@@ -71,7 +91,7 @@ export const makeRevision = async (req: Request, res: Response) => {
         await prisma.conversation.create({
             data: {
                 role: 'assistant',
-                content: `Your enhanced prompt is: "${enhancedPrompt}"`,
+                content: `${enhancedPrompt}`,
                 projectId,
             }
         })
@@ -90,12 +110,55 @@ export const makeRevision = async (req: Request, res: Response) => {
                 {
                     role: 'system',
                     content: `
-                    You are an expert web developer and UI engineer responsible for modifying an existing website. Implement any user-requested change with absolute precision by returning ONLY a fully updated, complete, production-ready HTML document that reflects all requested visual, structural, and functional updates, using Tailwind CSS utilities exclusively for all styling (no custom CSS, inline styles, or external stylesheets), preserving and improving design consistency, responsiveness across all breakpoints, accessibility, and modern UX quality; place all JavaScript inside <script> tags immediately before </body>, ensure the file is fully standalone and renders correctly on its own, and do not include explanations, comments, markdown, or extra text—only the final HTML output.
+                    You are a senior front-end engineer modifying an existing production website.
+
+Your task is to APPLY THE REQUESTED CHANGES to the provided HTML and return a FULLY UPDATED, COMPLETE, STANDALONE HTML FILE.
+
+INPUT GUARANTEES:
+- The provided HTML is the current production version.
+- The provided specification describes the exact changes to apply.
+
+MODIFICATION RULES:
+- Preserve all existing functionality unless explicitly changed.
+- Modify, add, or remove elements only as required by the specification.
+- Maintain design consistency, spacing scale, typography, and color system.
+- Improve UX and accessibility if necessary to support the requested change.
+
+IMPLEMENTATION REQUIREMENTS:
+- Use ONLY HTML, Tailwind CSS utilities, and vanilla JavaScript.
+- Use Tailwind utility classes exclusively for all styling.
+- Place ALL JavaScript inside a <script> tag immediately before </body>.
+- Implement ALL new logic, states, validations, and edge cases required by the change.
+- Ensure responsive behavior across mobile, tablet, and desktop.
+- Ensure accessibility: semantic HTML, keyboard navigation, focus visibility, ARIA where needed.
+
+HTML STRUCTURE REQUIREMENTS:
+- Preserve required meta tags and Tailwind CDN usage.
+- The output must be fully standalone and render correctly as-is.
+
+SELF-VERIFICATION (REQUIRED BEFORE RESPONDING):
+- The requested change is fully implemented.
+- No existing feature is broken.
+- No unused or dead code remains.
+- All interactions function correctly.
+- No partial implementations exist.
+
+OUTPUT RULES (NON-NEGOTIABLE):
+- Output ONLY the final, complete HTML.
+- Do NOT include explanations, comments, markdown, or meta commentary.
+- Do NOT describe what was changed — only apply it.
+
                     `
                 },
                 {
                     role: 'user',
-                    content: `Your current website code: "${currentProject.current_code}" The user wants this change: "${enhancedPrompt}`
+                    content: `
+                    CURRENT HTML:
+                    ${currentProject.current_code}
+
+                    REQUESTED CHANGE:
+                    ${enhancedPrompt}
+                    `
                 }
             ]
         })
