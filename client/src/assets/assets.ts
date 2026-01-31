@@ -268,19 +268,34 @@ export const iframeScript = `
             const computedStyle = window.getComputedStyle(selectedElement);
 
             window.parent.postMessage({
-                type: 'ELEMENT_SELECTED',
-                payload: {
+            type: 'ELEMENT_SELECTED',
+            payload: {
                 tagName: selectedElement.tagName,
                 className: selectedElement.className,
-                text: selectedElement.innerText,
+
+                // TEXT (only meaningful for non-images)
+                text: selectedElement.tagName === 'IMG' ? '' : selectedElement.innerText,
+
+                // IMAGE DATA
+                src: selectedElement.tagName === 'IMG'
+                ? selectedElement.getAttribute('src')
+                : undefined,
+
+                alt: selectedElement.tagName === 'IMG'
+                ? selectedElement.getAttribute('alt') || ''
+                : undefined,
+
                 styles: {
-                    padding: computedStyle.padding,
-                    margin: computedStyle.margin,
-                    backgroundColor: computedStyle.backgroundColor,
-                    color: computedStyle.color,
-                    fontSize: computedStyle.fontSize
+                padding: computedStyle.padding,
+                margin: computedStyle.margin,
+                backgroundColor: computedStyle.backgroundColor,
+                color: computedStyle.color,
+                fontSize: computedStyle.fontSize,
+                objectFit: computedStyle.objectFit,
+                borderRadius: computedStyle.borderRadius,
+                boxShadow: computedStyle.boxShadow
                 }
-                }
+            }
             }, '*');
             });
 
@@ -292,12 +307,36 @@ export const iframeScript = `
                 selectedElement.className = updates.className;
                 }
 
-                if (updates.text !== undefined) {
+                /* ---------- TEXT ---------- */
+                if (
+                updates.text !== undefined &&
+                selectedElement.tagName !== 'IMG'
+                ) {
                 selectedElement.innerText = updates.text;
                 }
 
+                /* ---------- IMAGE ---------- */
+                if (
+                updates.src !== undefined &&
+                selectedElement.tagName === 'IMG'
+                ) {
+                selectedElement.setAttribute('src', updates.src);
+                }
+
+                if (
+                updates.alt !== undefined &&
+                selectedElement.tagName === 'IMG'
+                ) {
+                selectedElement.setAttribute('alt', updates.alt);
+                }
+
+                /* ---------- STYLES ---------- */
                 if (updates.styles) {
-                Object.assign(selectedElement.style, updates.styles);
+                Object.entries(updates.styles).forEach(function ([key, value]) {
+                    if (typeof value === 'string') {
+                    selectedElement.style[key] = value;
+                    }
+                });
                 }
             } else if (event.data.type === 'CLEAR_SELECTION_REQUEST') {
                 clearSelected();

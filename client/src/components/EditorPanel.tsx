@@ -7,16 +7,27 @@ interface EditorPanelProps {
   selectedElement: {
     tagName: string
     className: string
-    text: string
+    text?: string
+
+    // IMAGE SUPPORT
+    src?: string
+    alt?: string
+
     styles: {
-      padding: string
-      margin: string
-      backgroundColor: string
-      color: string
-      fontSize: string
-      [key: string]: string
-    } | null
-  }
+      padding?: string
+      margin?: string
+      backgroundColor?: string
+      color?: string
+      fontSize?: string
+
+      // image-relevant
+      objectFit?: string
+      borderRadius?: string
+      boxShadow?: string
+
+      [key: string]: string | undefined
+    }
+  } | null
   onUpdate: (updates: any) => void
   onClose: () => void
   setRevisionDraft: (text: string) => void
@@ -151,7 +162,7 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
   const buildRevisionPrompt = (suggestion: AISuggestion) => {
     const lines: string[] = []
 
-    // 1️⃣ Structured text change (if present)
+    // Structured text change (if present)
     if (
       typeof suggestion.changes?.text === 'string' &&
       suggestion.changes.text.trim().length > 0
@@ -159,7 +170,7 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
       lines.push(`Update the text to:\n"${suggestion.changes.text.trim()}"`)
     }
 
-    // 2️⃣ Structured style changes (if present)
+    // Structured style changes (if present)
     if (suggestion.changes?.styles) {
       const entries = Object.entries(suggestion.changes.styles)
         .filter(([_, v]) => typeof v === 'string' && v.trim().length > 0)
@@ -169,7 +180,7 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
       }
     }
 
-    // 3️⃣ 🔥 FALLBACK — semantic revision (THIS FIXES YOUR ISSUE)
+    // FALLBACK — semantic revision (THIS FIXES YOUR ISSUE)
     if (lines.length === 0) {
       lines.push(suggestion.summary)
 
@@ -185,6 +196,8 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
     `.trim()
   }
 
+  const isImage = values.tagName === 'IMG'
+  const isText = !isImage
 
 
   return (
@@ -217,19 +230,21 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
         {mode === 'edit' && (
           <>
               {/* TEXT */}
-              <div className="space-y-1.5">
-                <label className="text-xs text-slate-400">Text Content</label>
-                <textarea
-                  value={values.text}
-                  onChange={(e) => handleChange('text', e.target.value)}
-                  className="
-                    w-full min-h-[70px] resize-none
-                    rounded-lg bg-white/5 px-3 py-2
-                    text-white outline-none
-                    focus:ring-2 ring-indigo-500 transition
-                  "
-                />
-              </div>
+              {isText && (
+                <div className="space-y-1.5">
+                  <label className="text-xs text-slate-400">Text Content</label>
+                  <textarea
+                    value={values.text}
+                    onChange={(e) => handleChange('text', e.target.value)}
+                    className="
+                      w-full min-h-[70px] resize-none
+                      rounded-lg bg-white/5 px-3 py-2
+                      text-white outline-none
+                      focus:ring-2 ring-indigo-500 transition
+                    "
+                  />
+                </div>
+              )}
 
               {/* CLASS */}
               <div className="space-y-1.5">
@@ -245,6 +260,109 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
                   "
                 />
               </div>
+
+              {isImage && (
+                <div className="space-y-4">
+                  <h4 className="text-xs font-semibold text-slate-400 tracking-wide uppercase">
+                    Image
+                  </h4>
+
+                  {/* IMAGE SRC */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-400">Image URL</label>
+                    <input
+                      type="text"
+                      value={values.src || ''}
+                      onChange={(e) => handleChange('src', e.target.value)}
+                      className="w-full rounded-lg bg-white/5 px-3 py-2 text-sm outline-none focus:ring-2 ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* ALT TEXT */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-400">Alt Text</label>
+                    <input
+                      type="text"
+                      value={values.alt || ''}
+                      onChange={(e) => handleChange('alt', e.target.value)}
+                      className="w-full rounded-lg bg-white/5 px-3 py-2 text-sm outline-none focus:ring-2 ring-indigo-500"
+                    />
+                  </div>
+
+                  {/* OBJECT FIT */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-400">Object Fit</label>
+                    <select
+                      value={values.styles?.objectFit || 'cover'}
+                      onChange={(e) => handleStyleChange('objectFit', e.target.value)}
+                      className="w-full rounded-lg
+                      bg-black/40
+                      px-3 py-2
+                      text-sm text-white
+                      outline-none
+                      ring-1 ring-white/10
+                      hover:ring-white/20
+                      focus:ring-2 focus:ring-indigo-500/60
+                      transition
+                      appearance-none"
+                    >
+                      <option value="cover">Cover</option>
+                      <option value="contain">Contain</option>
+                      <option value="fill">Fill</option>
+                      <option value="none">None</option>
+                      <option value="scale-down">Scale down</option>
+                    </select>
+                  </div>
+
+                  {/* BORDER RADIUS */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-400">Border Radius</label>
+                    <select
+                      value={values.styles?.borderRadius || '0px'}
+                      onChange={(e) => handleStyleChange('borderRadius', e.target.value)}
+                      className="w-full rounded-lg
+                      bg-black/40
+                      px-3 py-2
+                      text-sm text-white
+                      outline-none
+                      ring-1 ring-white/10
+                      hover:ring-white/20
+                      focus:ring-2 focus:ring-indigo-500/60
+                      transition
+                      appearance-none"
+                    >
+                      <option value="0px">None</option>
+                      <option value="8px">Small</option>
+                      <option value="12px">Medium</option>
+                      <option value="16px">Large</option>
+                      <option value="9999px">Full</option>
+                    </select>
+                  </div>
+
+                  {/* SHADOW */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-400">Shadow</label>
+                    <select
+                      value={values.styles?.boxShadow || 'none'}
+                      onChange={(e) => handleStyleChange('boxShadow', e.target.value)}
+                      className="w-full rounded-lg
+                      bg-black/40
+                      px-3 py-2
+                      text-sm text-white
+                      outline-none
+                      ring-1 ring-white/10
+                      hover:ring-white/20
+                      focus:ring-2 focus:ring-indigo-500/60
+                      transition
+                      appearance-none"
+                    >
+                      <option value="none">None</option>
+                      <option value="0 10px 25px rgba(0,0,0,0.25)">Medium</option>
+                      <option value="0 20px 40px rgba(0,0,0,0.35)">Large</option>
+                    </select>
+                  </div>
+                </div>
+              )}
 
               {/* SPACING */}
               <div className="grid grid-cols-2 gap-3">
