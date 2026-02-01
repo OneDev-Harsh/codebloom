@@ -72,7 +72,7 @@ export const createUserProject = async (req: Request, res: Response) => {
         res.json({projectId: project.id});
 
         const promptEnhanceResponse = await openai.chat.completions.create({
-            model: 'xiaomi/mimo-v2-flash:free',
+            model: 'arcee-ai/trinity-large-preview:free',
             messages: [
                 {
                     role: 'system',
@@ -107,7 +107,7 @@ Output ONLY the final enhanced specification.
             ]
         })
 
-        const enhancedPrompt = promptEnhanceResponse.choices[0].message?.content;
+        const enhancedPrompt = promptEnhanceResponse?.choices[0].message?.content;
 
         await prisma.conversation.create({
             data: {
@@ -126,7 +126,7 @@ Output ONLY the final enhanced specification.
         });
 
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: "mistralai/devstral-2512:free",
+            model: "arcee-ai/trinity-large-preview:free",
             messages: [
                 {
                     role: 'system',
