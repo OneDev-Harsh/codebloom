@@ -1,5 +1,8 @@
 {
-  "dependencies": {
-    "jsdom": "^27.4.0"
+  "name": "codebloom",
+  "private": true,
+  "scripts": {
+    "build": "cd client && npm install && npm run build && cd ../server && npm install && npm run build && npx prisma generate",
+    "start": "node server/dist/server.js"
   }
 }

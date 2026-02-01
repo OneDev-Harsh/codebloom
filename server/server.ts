@@ -6,6 +6,7 @@ import { auth } from './lib/auth.js';
 import userRouter from './routes/userRoutes.js';
 import projectRouter from './routes/projectRoutes.js';
 import aiRouter from './routes/aiRoutes.js';
+import path from 'path';
 
 const app = express();
 
@@ -29,6 +30,19 @@ app.use('/api/user', userRouter)
 app.use('/api/project', projectRouter)
 
 app.use('/api/auth', toNodeHandler(auth));
+
+/* ---------------- SERVE FRONTEND ---------------- */
+const __dirnameResolved = path.resolve();
+
+app.use(
+  express.static(path.join(__dirnameResolved, "client/dist"))
+);
+
+app.get("*", (_req, res) => {
+  res.sendFile(
+    path.join(__dirnameResolved, "client/dist/index.html")
+  );
+});
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
