@@ -29,6 +29,7 @@ model User {
   accounts     Account[]
   transactions Transaction[]
   projectLikes ProjectLike[]
+  comments ProjectComment[]
 
   @@map("user")
 }
@@ -47,6 +48,7 @@ model WebsiteProject {
   conversation Conversation[]
   versions     Version[]
   user         User           @relation(fields: [userId], references: [id])
+  comments ProjectComment[]
 
   likes ProjectLike[]
 
@@ -155,4 +157,20 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model ProjectComment {
+  id        String   @id @default(uuid())
+  content   String
+
+  projectId String
+  userId    String
+
+  createdAt DateTime @default(now())
+
+  project WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([userId])
 }

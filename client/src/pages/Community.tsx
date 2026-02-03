@@ -5,11 +5,15 @@ import { useNavigate } from "react-router-dom";
 import api from "@/configs/axios";
 import { toast } from "sonner";
 import LikeBurst from "@/effects/LikeBurst";
+import { MessageCircleIcon } from "lucide-react"
+import ProjectCommentsModal from "@/components/ProjectCommentsModal"
 
 const Community = () => {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [burstId, setBurstId] = useState<string | null>(null);
+  const [activeCommentProject, setActiveCommentProject] =
+  useState<{ id: string; name: string } | null>(null)
 
   const navigate = useNavigate();
 
@@ -146,6 +150,21 @@ const Community = () => {
                       </span>
                     </span>
 
+                    {/* COMMENTS */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setActiveCommentProject({
+                          id: project.id,
+                          name: project.name,
+                        })
+                      }}
+                      className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs text-slate-400 hover:bg-white/10"
+                    >
+                      <MessageCircleIcon size={13} />
+                      <span>Comments</span>
+                    </button>
+
                     <button
                       onClick={(e) => toggleLike(e, project.id)}
                       className={`
@@ -195,6 +214,15 @@ const Community = () => {
           </p>
         </div>
       )}
+
+      {activeCommentProject && (
+        <ProjectCommentsModal
+          projectId={activeCommentProject.id}
+          projectName={activeCommentProject.name}
+          onClose={() => setActiveCommentProject(null)}
+        />
+      )}
+
     </div>
   );
 };

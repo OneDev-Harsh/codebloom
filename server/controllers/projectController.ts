@@ -515,3 +515,58 @@ by transferring styles and attributes ONLY.
 
   return res.json({ html: finalHtml })
 }
+
+export const getProjectComments = async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params
+
+    const comments = await prisma.projectComment.findMany({
+      where: { projectId },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    })
+
+    res.json({ comments })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Failed to fetch comments" })
+  }
+}
+
+export const addComment = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId
+    const { projectId } = req.params
+    const { content } = req.body
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" })
+    }
+
+    if (!content?.trim()) {
+      return res.status(400).json({ message: "Comment cannot be empty" })
+    }
+
+    const comment = await prisma.projectComment.create({
+      data: {
+        content,
+        projectId,
+        userId,
+      },
+      include: {
+        user: {
+          select: { name: true },
+        },
+      },
+    })
+
+    res.json({ comment })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Failed to add comment" })
+  }
+}
