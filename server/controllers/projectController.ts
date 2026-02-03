@@ -51,7 +51,7 @@ export const makeRevision = async (req: Request, res: Response) => {
         })
 
         const promptEnhanceResponse = await openai.chat.completions.create({
-            model: 'arcee-ai/trinity-large-preview:free',
+            model: 'xiaomi/mimo-v2-flash:free',
             messages: [
                 {
                     role: 'system',
@@ -105,7 +105,7 @@ Output ONLY the final enhanced specification.
         })
 
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: 'arcee-ai/trinity-large-preview:free',
+            model: 'mistralai/devstral-2512:free',
             messages: [
                 {
                     role: 'system',
@@ -310,18 +310,16 @@ export const getProjectPreview = async (req: Request, res: Response) => {
 
 export const getPublishedProjects = async (req: Request, res: Response) => {
   try {
-    const userId = req.userId || null
+    const userId = req.userId ?? null
 
     const projects = await prisma.websiteProject.findMany({
       where: { isPublished: true },
       include: {
         user: true,
-        likes: userId
-          ? {
-              where: { userId },
-              select: { id: true },
-            }
-          : false,
+        likes: {
+          where: userId ? { userId } : undefined,
+          select: { id: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     })
@@ -329,7 +327,7 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
     const formattedProjects = projects.map((project) => ({
       ...project,
       likedByMe: userId ? project.likes.length > 0 : false,
-      likes: undefined, // clean response
+      likes: undefined, // remove raw relation from response
     }))
 
     res.json({ projects: formattedProjects })
@@ -338,6 +336,7 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal Server Error" })
   }
 }
+
 
 
 export const getProjectById = async (req: Request, res: Response) => {
@@ -470,7 +469,7 @@ export const componentsToHtml = async (req: Request, res: Response) => {
 
   // 3️⃣ AI STYLE TRANSFER (CONTROLLED)
   const aiResponse = await openai.chat.completions.create({
-    model: "arcee-ai/trinity-large-preview:free",
+    model: "mistralai/devstral-2512:free",
     temperature: 0,
     messages: [
       {

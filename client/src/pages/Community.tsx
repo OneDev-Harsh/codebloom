@@ -4,10 +4,13 @@ import { Loader2Icon, GlobeIcon, HeartIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/configs/axios";
 import { toast } from "sonner";
+import LikeBurst from "@/effects/LikeBurst";
 
 const Community = () => {
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [burstId, setBurstId] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   const fetchProjects = async () => {
@@ -18,6 +21,49 @@ const Community = () => {
     } catch (error: any) {
       toast.error(error?.response?.data?.message || error.message)
       console.log(error)
+    }
+  }
+
+  const toggleLike = async (
+    e: React.MouseEvent,
+    projectId: string
+  ) => {
+    e.stopPropagation()
+
+    setProjects(prev =>
+      prev.map(p =>
+        p.id === projectId
+          ? {
+              ...p,
+              likedByMe: !p.likedByMe,
+              likesCount: p.likesCount + (p.likedByMe ? -1 : 1),
+            }
+          : p
+      )
+    )
+
+    setBurstId(projectId)
+    setTimeout(() => setBurstId(null), 400)
+
+    try {
+      const { data } = await api.post(
+        `/api/user/projects/${projectId}/like`
+      )
+
+      setProjects(prev =>
+        prev.map(p =>
+          p.id === projectId
+            ? {
+                ...p,
+                likedByMe: data.liked,
+                likesCount: data.likesCount,
+              }
+            : p
+        )
+      )
+    } catch {
+      toast.error("Failed to update like")
+      fetchProjects() // fallback sync
     }
   }
 
@@ -99,9 +145,40 @@ const Community = () => {
                         {project.user?.name ?? "Anonymous"}
                       </span>
                     </span>
-                    </div>
+
+                    <button
+                      onClick={(e) => toggleLike(e, project.id)}
+                      className={`
+                        relative
+                        flex items-center gap-1.5
+                        rounded-full px-2.5 py-1
+                        text-xs
+                        transition
+                        ${
+                          project.likedByMe
+                            ? "bg-red-500/10 text-red-400"
+                            : "bg-white/5 text-slate-400 hover:bg-red-500/10 hover:text-red-400"
+                        }
+                      `}
+                    >
+                      {/* BURST */}
+                      {burstId === project.id && project.likedByMe && <LikeBurst />}
+
+                      <HeartIcon
+                        size={13}
+                        className={`
+                          transition-transform
+                          ${project.likedByMe ? "fill-red-500 scale-110" : ""}
+                          active:scale-125
+                        `}
+                      />
+
+                      <span>{project.likesCount}</span>
+                    </button>
+
                   </div>
                 </div>
+              </div>
             ))}
           </div>
         </div>

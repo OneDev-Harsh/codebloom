@@ -2,9 +2,8 @@
 2. qwen/qwen-2.5-coder-32b-instruct
 3. xiaomi/mimo-v2-flash:free
 4. mistralai/devstral-2512:free (good)
-5. arcee-ai/trinity-large-preview:free
+5. qwen/qwen3-coder:free
 6. google/gemini-3-flash-preview (really good)
 7. anthropic/claude-sonnet-4.5
 8. google/gemini-3-pro-preview
 9. anthropic/claude-opus-4.5
-10. arcee-ai/trinity-large-preview:free

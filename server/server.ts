@@ -31,19 +31,6 @@ app.use('/api/project', projectRouter)
 
 app.use('/api/auth', toNodeHandler(auth));
 
-/* ---------------- SERVE FRONTEND ---------------- */
-const __dirnameResolved = path.resolve();
-
-app.use(
-  express.static(path.join(__dirnameResolved, "client/dist"))
-);
-
-app.get("*", (_req, res) => {
-  res.sendFile(
-    path.join(__dirnameResolved, "client/dist/index.html")
-  );
-});
-
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });

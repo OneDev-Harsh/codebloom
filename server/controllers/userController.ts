@@ -72,7 +72,7 @@ export const createUserProject = async (req: Request, res: Response) => {
         res.json({projectId: project.id});
 
         const promptEnhanceResponse = await openai.chat.completions.create({
-            model: 'arcee-ai/trinity-large-preview:free',
+            model: 'xiaomi/mimo-v2-flash:free',
             messages: [
                 {
                     role: 'system',
@@ -107,7 +107,7 @@ Output ONLY the final enhanced specification.
             ]
         })
 
-        const enhancedPrompt = promptEnhanceResponse?.choices[0].message?.content;
+        const enhancedPrompt = promptEnhanceResponse.choices[0].message?.content;
 
         await prisma.conversation.create({
             data: {
@@ -126,7 +126,7 @@ Output ONLY the final enhanced specification.
         });
 
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: "arcee-ai/trinity-large-preview:free",
+            model: "mistralai/devstral-2512:free",
             messages: [
                 {
                     role: 'system',
@@ -428,6 +428,7 @@ export const verifyPayment = async (req: Request, res: Response) => {
   }
 }
 
+// toggleProjectLike.ts
 export const toggleProjectLike = async (req: Request, res: Response) => {
   try {
     const userId = req.userId
@@ -439,38 +440,31 @@ export const toggleProjectLike = async (req: Request, res: Response) => {
 
     const existingLike = await prisma.projectLike.findUnique({
       where: {
-        projectId_userId: {
-          projectId,
-          userId,
-        },
+        projectId_userId: { projectId, userId },
       },
     })
 
     if (existingLike) {
-      await prisma.$transaction([
-        prisma.projectLike.delete({
-          where: { id: existingLike.id },
-        }),
+      const [, project] = await prisma.$transaction([
+        prisma.projectLike.delete({ where: { id: existingLike.id } }),
         prisma.websiteProject.update({
           where: { id: projectId },
           data: { likesCount: { decrement: 1 } },
         }),
       ])
 
-      return res.json({ liked: false })
+      return res.json({ liked: false, likesCount: project.likesCount })
     }
 
-    await prisma.$transaction([
-      prisma.projectLike.create({
-        data: { projectId, userId },
-      }),
+    const [, project] = await prisma.$transaction([
+      prisma.projectLike.create({ data: { projectId, userId } }),
       prisma.websiteProject.update({
         where: { id: projectId },
         data: { likesCount: { increment: 1 } },
       }),
     ])
 
-    return res.json({ liked: true })
+    return res.json({ liked: true, likesCount: project.likesCount })
   } catch (error) {
     console.error("LIKE ERROR:", error)
     return res.status(500).json({ message: "Failed to toggle like" })
