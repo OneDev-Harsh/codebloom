@@ -36,4 +36,5 @@ export interface Project {
     current_version_index: string;
     likesCount: number
     likedByMe: boolean
+    commentsCount?: number
 }

@@ -30,6 +30,8 @@ model User {
   transactions Transaction[]
   projectLikes ProjectLike[]
   comments ProjectComment[]
+  commentLikes CommentLike[]
+
 
   @@map("user")
 }
@@ -166,11 +168,29 @@ model ProjectComment {
   projectId String
   userId    String
 
+  parentId  String?        // 👈 for replies
   createdAt DateTime @default(now())
 
   project WebsiteProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  parent  ProjectComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies ProjectComment[] @relation("CommentReplies")
+
+  likes   CommentLike[]    // 👈 likes on comments
+
   @@index([projectId])
   @@index([userId])
+  @@index([parentId])
+}
+
+model CommentLike {
+  id        String   @id @default(uuid())
+  commentId String
+  userId    String
+
+  comment ProjectComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
 }

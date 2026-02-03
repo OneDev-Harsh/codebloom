@@ -316,6 +316,11 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
       where: { isPublished: true },
       include: {
         user: true,
+        _count: {
+        select: {
+            comments: true, // 👈 count comments
+        },
+        },
         likes: {
           where: userId ? { userId } : undefined,
           select: { id: true },
@@ -327,7 +332,9 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
     const formattedProjects = projects.map((project) => ({
       ...project,
       likedByMe: userId ? project.likes.length > 0 : false,
-      likes: undefined, // remove raw relation from response
+      likes: undefined,
+      commentsCount: project._count.comments, // remove raw relation from response
+      _count: undefined,
     }))
 
     res.json({ projects: formattedProjects })
@@ -336,8 +343,6 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Internal Server Error" })
   }
 }
-
-
 
 export const getProjectById = async (req: Request, res: Response) => {
     try {
@@ -520,17 +525,44 @@ export const getProjectComments = async (req: Request, res: Response) => {
   try {
     const { projectId } = req.params
 
+    const userId = req.userId ?? null
+
     const comments = await prisma.projectComment.findMany({
-      where: { projectId },
-      include: {
+    where: {
+        projectId,
+        parentId: null, // top-level comments only
+    },
+    include: {
         user: {
-          select: { name: true },
+        select: { name: true },
         },
-      },
-      orderBy: { createdAt: "desc" },
+        replies: {
+        include: {
+            user: { select: { name: true } },
+        },
+        orderBy: { createdAt: "asc" },
+        },
+        likes: {
+        where: userId ? { userId } : undefined,
+        select: { id: true },
+        },
+        _count: {
+        select: { likes: true },
+        },
+    },
+    orderBy: { createdAt: "desc" },
     })
 
-    res.json({ comments })
+    const formatted = comments.map(c => ({
+        ...c,
+        likedByMe: userId ? c.likes.length > 0 : false,
+        likesCount: c._count.likes,
+        isMine: userId === c.userId,//? userId === c.userId : false,
+        likes: undefined,
+        _count: undefined,
+    }))
+
+    res.json({ comments: formatted })
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Failed to fetch comments" })
@@ -569,4 +601,61 @@ export const addComment = async (req: Request, res: Response) => {
     console.error(error)
     res.status(500).json({ message: "Failed to add comment" })
   }
+}
+
+export const toggleCommentLike = async (req: Request, res: Response) => {
+  const userId = req.userId || ''
+  const { commentId } = req.params
+
+  const existing = await prisma.commentLike.findUnique({
+    where: { commentId_userId: { commentId, userId } }
+  })
+
+  if (existing) {
+    await prisma.commentLike.delete({ where: { id: existing.id } })
+    return res.json({ liked: false })
+  }
+
+  await prisma.commentLike.create({
+    data: { commentId, userId }
+  })
+
+  res.json({ liked: true })
+}
+
+export const deleteComment = async (req: Request, res: Response) => {
+  const userId = req.userId
+  const { commentId } = req.params
+
+  const comment = await prisma.projectComment.findUnique({
+    where: { id: commentId }
+  })
+
+  if (!comment || comment.userId !== userId) {
+    return res.status(403).json({ message: "Not allowed" })
+  }
+
+  await prisma.projectComment.delete({ where: { id: commentId } })
+
+  res.json({ success: true })
+}
+
+export const replyToComment = async (req: Request, res: Response) => {
+  const userId = req.userId || ''
+  const { commentId } = req.params
+  const { content, projectId } = req.body
+
+  const reply = await prisma.projectComment.create({
+    data: {
+      content,
+      projectId,
+      userId,
+      parentId: commentId,
+    },
+    include: {
+      user: { select: { name: true } }
+    }
+  })
+
+  res.json({ reply })
 }

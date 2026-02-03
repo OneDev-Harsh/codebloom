@@ -10,6 +10,10 @@ interface Comment {
   user: {
     name: string
   }
+  likedByMe?: boolean
+  likesCount?: number
+  isMine: boolean
+  replies: Comment[]
 }
 
 interface Props {
@@ -22,6 +26,8 @@ const ProjectCommentsModal = ({ projectId, projectName, onClose }: Props) => {
   const [comments, setComments] = useState<Comment[]>([])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
+  const [replyTo, setReplyTo] = useState<string | null>(null)
+  const [replyInput, setReplyInput] = useState("")
 
   const fetchComments = async () => {
     try {
@@ -50,6 +56,60 @@ const ProjectCommentsModal = ({ projectId, projectName, onClose }: Props) => {
       toast.error("Failed to post comment")
     } finally {
       setLoading(false)
+    }
+  }
+
+  const toggleLike = async (commentId: string) => {
+    setComments(prev =>
+      prev.map(c =>
+        c.id === commentId
+          ? {
+              ...c,
+              likedByMe: !c.likedByMe,
+              likesCount: (c.likesCount || 0) + (c.likedByMe ? -1 : 1),
+            }
+          : c
+      )
+    )
+
+    try {
+      await api.post(`/api/project/comment/${commentId}/like`)
+    } catch {
+      fetchComments()
+    }
+  }
+
+  const deleteComment = async (commentId: string) => {
+    try {
+      await api.delete(`/api/project/comment/${commentId}`)
+      setComments(prev => prev.filter(c => c.id !== commentId))
+      toast.success("Comment deleted")
+    } catch {
+      toast.error("Failed to delete comment")
+    }
+  }
+
+  const postReply = async (parentId: string) => {
+    if (!replyInput.trim()) return
+
+    try {
+      const { data } = await api.post(
+        `/api/project/comment/${parentId}/reply`,
+        { content: replyInput, projectId }
+      )
+
+      setComments(prev =>
+        prev.map(c =>
+          c.id === parentId
+            ? { ...c, replies: [data.reply, ...(c.replies || [])] }
+            : c
+        )
+      )
+
+      setReplyInput("")
+      setReplyTo(null)
+    } catch {
+      toast.error("Failed to post reply")
     }
   }
 
@@ -96,18 +156,87 @@ const ProjectCommentsModal = ({ projectId, projectName, onClose }: Props) => {
           )}
 
           {comments.map((c) => (
-            <div key={c.id} className="space-y-1">
-              <p className="text-xs text-slate-400">
-                <span className="text-slate-300 font-medium">
-                  {c.user.name}
-                </span>{" "}
-                • {new Date(c.createdAt).toLocaleString()}
-              </p>
-              <p className="text-sm text-slate-200">
-                {c.content}
-              </p>
-            </div>
-          ))}
+  <div key={c.id} className="space-y-2 rounded-lg bg-white/5 px-3 py-2">
+    {/* HEADER */}
+    <p className="text-xs text-slate-400">
+      <span className="text-slate-300 font-medium">
+        {c.user.name}
+      </span>{" "}
+      • {new Date(c.createdAt).toLocaleString()}
+    </p>
+
+    {/* CONTENT */}
+    <p className="text-sm text-slate-200">
+      {c.content}
+    </p>
+
+    {/* ACTIONS */}
+    <div className="flex items-center gap-4 text-xs text-slate-400">
+      {/* LIKE */}
+      <button
+        onClick={() => toggleLike(c.id)}
+        className={`hover:text-red-400 ${
+          c.likedByMe ? "text-red-400" : ""
+        }`}
+      >
+        ❤️ {c.likesCount ?? 0}
+      </button>
+
+      {/* REPLY */}
+      <button
+        onClick={() => setReplyTo(c.id)}
+        className="hover:text-indigo-400"
+      >
+        Reply
+      </button>
+
+      {/* DELETE (only if mine) */}
+      {c.isMine && (
+        <button
+          onClick={() => deleteComment(c.id)}
+          className="hover:text-red-400"
+        >
+          Delete
+        </button>
+      )}
+    </div>
+
+    {/* REPLY INPUT */}
+    {replyTo === c.id && (
+      <div className="flex gap-2 mt-2">
+        <input
+          value={replyInput}
+          onChange={(e) => setReplyInput(e.target.value)}
+          placeholder="Write a reply…"
+          className="flex-1 rounded-md bg-black/40 px-2 py-1 text-xs text-white outline-none focus:ring-1 ring-indigo-500"
+        />
+        <button
+          onClick={() => postReply(c.id)}
+          className="text-xs text-indigo-400"
+        >
+          Post
+        </button>
+      </div>
+    )}
+
+    {/* REPLIES */}
+    {c.replies?.length > 0 && (
+      <div className="mt-2 space-y-1 border-l border-slate-700 pl-3">
+        {c.replies.map((r) => (
+          <div key={r.id} className="text-xs">
+            <span className="text-slate-300 font-medium">
+              {r.user.name}
+            </span>{" "}
+            <span className="text-slate-400">
+              {r.content}
+            </span>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+))}
+
         </div>
 
         {/* INPUT */}

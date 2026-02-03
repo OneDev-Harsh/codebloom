@@ -159,10 +159,21 @@ const Community = () => {
                           name: project.name,
                         })
                       }}
-                      className="flex items-center gap-1 rounded-full bg-white/5 px-2.5 py-1 text-xs text-slate-400 hover:bg-white/10"
+                      className="
+                        flex items-center gap-1.5
+                        rounded-full
+                        bg-white/5
+                        px-2.5 py-1
+                        text-xs
+                        text-slate-400
+                        hover:bg-white/10
+                        transition
+                      "
                     >
                       <MessageCircleIcon size={13} />
-                      <span>Comments</span>
+                      <span>
+                        {project.commentsCount ?? 0}
+                      </span>
                     </button>
 
                     <button
