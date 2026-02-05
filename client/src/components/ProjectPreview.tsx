@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { Project } from '../types'
 import { iframeScript } from '../assets/assets'
 import EditorPanel from './EditorPanel'
@@ -13,7 +13,7 @@ export interface ProjectPreviewProps {
   isGenerating: boolean
   device?: 'phone' | 'tablet' | 'desktop'
   showEditorPanel?: boolean
-  setRevisionDraft: (text: string) => void
+  setRevisionDraft?: (text: string) => void
 }
 
 const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(
@@ -139,7 +139,7 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(
           srcDoc={injectPreview(project.current_code)}
           className="w-full h-full rounded-lg bg-white"
         />
-        {showEditorPanel && selectedElement && (
+        {showEditorPanel && selectedElement && setRevisionDraft && (
           <EditorPanel selectedElement={selectedElement} onUpdate={handleUpdate} setRevisionDraft={setRevisionDraft} onClose={() => {
             setSelectedElement(null)
             if(iframeRef.current?.contentWindow) {

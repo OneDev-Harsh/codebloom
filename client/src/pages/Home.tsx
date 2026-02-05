@@ -2,7 +2,7 @@ import { PROMPT_TEMPLATES } from "@/assets/assets";
 import api from "@/configs/axios";
 import { authClient } from "@/lib/auth-client";
 import { Loader2Icon } from "lucide-react";
-import React, { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 

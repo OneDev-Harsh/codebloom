@@ -72,7 +72,7 @@ export const createUserProject = async (req: Request, res: Response) => {
         res.json({projectId: project.id});
 
         const promptEnhanceResponse = await openai.chat.completions.create({
-            model: 'xiaomi/mimo-v2-flash:free',
+            model: 'arcee-ai/trinity-large-preview:free:free',
             messages: [
                 {
                     role: 'system',
@@ -126,7 +126,7 @@ Output ONLY the final enhanced specification.
         });
 
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: "mistralai/devstral-2512:free",
+            model: "arcee-ai/trinity-large-preview:free",
             messages: [
                 {
                     role: 'system',

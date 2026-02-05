@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { Loader2Icon } from 'lucide-react'
 import ProjectPreview from '../components/ProjectPreview'
 import type { Project, Version } from '../types'
@@ -10,8 +10,6 @@ import { authClient } from '@/lib/auth-client'
 const Preview = () => {
 
   const {data: session, isPending} = authClient.useSession()
-
-  const navigate = useNavigate()
 
   const {projectId, versionId} = useParams()
   const [code, setCode] = useState('')

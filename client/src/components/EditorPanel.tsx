@@ -1,7 +1,7 @@
 import api from '@/configs/axios'
 import { diffStyles, diffText } from '@/lib/utils'
 import { X } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface EditorPanelProps {
   selectedElement: {
@@ -25,7 +25,7 @@ interface EditorPanelProps {
       borderRadius?: string
       boxShadow?: string
 
-      [key: string]: string | undefined
+      [key: string]: string | undefined 
     }
   } | null
   onUpdate: (updates: any) => void

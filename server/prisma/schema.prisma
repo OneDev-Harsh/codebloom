@@ -31,7 +31,8 @@ model User {
   projectLikes ProjectLike[]
   comments ProjectComment[]
   commentLikes CommentLike[]
-
+  followers  Follow[] @relation("Following")
+  following  Follow[] @relation("Follower")
 
   @@map("user")
 }
@@ -193,4 +194,18 @@ model CommentLike {
   user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([commentId, userId])
+}
+
+model Follow {
+  id           String @id @default(uuid())
+  followerId   String
+  followingId  String
+  createdAt    DateTime @default(now())
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }

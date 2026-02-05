@@ -12,7 +12,7 @@ export const explainSection = async (req: Request, res: Response) => {
     }
 
     const explanationResponse = await openai.chat.completions.create({
-      model: "mistralai/devstral-2512:free",
+      model: "arcee-ai/trinity-large-preview:free",
       messages: [
         {
           role: "system",
@@ -112,7 +112,7 @@ export const suggestImprovements = async (req: Request, res: Response) => {
     }
 
     const aiResponse = await openai.chat.completions.create({
-      model: "mistralai/devstral-2512:free",
+      model: "arcee-ai/trinity-large-preview:free",
       temperature: 0.3,
       messages: [
         {
@@ -217,7 +217,7 @@ export const improvePage = async (req: Request, res: Response) => {
     }
 
     const aiResponse = await openai.chat.completions.create({
-      model: 'mistralai/devstral-2512:free',
+      model: 'arcee-ai/trinity-large-preview:free',
       temperature: 0.4,
       messages: [
         {
@@ -297,7 +297,7 @@ export const applyTemplate = async (req: Request, res: Response) => {
 
     // 3️⃣ AI regeneration prompt
     const aiResponse = await openai.chat.completions.create({
-      model: "mistralai/devstral-2512:free",
+      model: "arcee-ai/trinity-large-preview:free",
       temperature: 0.4,
       messages: [
         {

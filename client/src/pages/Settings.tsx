@@ -35,11 +35,6 @@ const Settings = () => {
                 border-b border-slate-800
                 font-medium
               `,
-              body: `
-                px-6 py-5
-                space-y-4
-                text-sm text-slate-300
-              `,
               footer: `
                 px-6 py-4
                 border-t border-slate-800
@@ -47,38 +42,6 @@ const Settings = () => {
                 flex justify-end gap-3
               `,
             },
-
-            input: `
-              bg-white/5
-              border border-slate-800
-              text-white
-              placeholder:text-slate-500
-              focus:ring-2 focus:ring-indigo-500
-              focus:border-indigo-500
-            `,
-
-            actionButton: `
-              bg-gradient-to-r from-[#CB52D4] to-indigo-600
-              text-white font-medium
-              px-5 py-2 rounded-md
-              hover:opacity-90
-              active:scale-[0.98]
-              transition
-              cursor-pointer
-            `,
-
-            secondaryButton: `
-              bg-white/5
-              text-slate-300
-              px-4 py-2 rounded-md
-              hover:bg-white/10
-              transition
-                cursor-pointer
-            `,
-
-            label: `
-              text-xs text-slate-400
-            `,
           }}
         />
 

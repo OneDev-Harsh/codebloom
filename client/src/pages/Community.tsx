@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import type { Project } from "../types";
-import { Loader2Icon, GlobeIcon, HeartIcon } from "lucide-react";
+import { Loader2Icon, HeartIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/configs/axios";
 import { toast } from "sonner";

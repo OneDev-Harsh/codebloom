@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Project } from "../types";
-import { Loader2Icon, PlusIcon, TrashIcon, GlobeIcon } from "lucide-react";
+import { Loader2Icon, PlusIcon, TrashIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import api from "@/configs/axios";
 import { toast } from "sonner";
@@ -155,13 +155,7 @@ const MyProjects = () => {
                     >
                       Open
                     </button>
-
-                    <button
-                      onClick={() => window.open(project.websiteUrl, "_blank")}
-                      className="flex items-center gap-1 text-xs font-medium text-slate-300 hover:text-white transition"
-                    >
-                      Website
-                    </button>
+                    
                   </div>
                 </div>
               </div>

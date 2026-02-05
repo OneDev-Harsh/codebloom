@@ -7,3 +7,4 @@
 7. anthropic/claude-sonnet-4.5
 8. google/gemini-3-pro-preview
 9. anthropic/claude-opus-4.5
+10. arcee-ai/trinity-large-preview:free
