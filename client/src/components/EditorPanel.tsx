@@ -517,8 +517,7 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
                   </div>
                 )}
 
-                {/* STYLE DIFF */}
-                {active.changes.styles && (
+                {/* {active.changes.styles && (
                   <div className="rounded-md bg-black/40 p-2 space-y-1 text-xs">
                     {diffStyles(values.styles, active.changes.styles).map(
                       ([k, v]) => (
@@ -531,7 +530,8 @@ const EditorPanel = ({ selectedElement, onUpdate, onClose, setRevisionDraft }: E
                       )
                     )}
                   </div>
-                )}
+                )}*/}
+                {/* STYLE DIFF */}
 
                 <button
                   onClick={() => setShowWhy(v => !v)}

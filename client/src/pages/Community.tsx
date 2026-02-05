@@ -15,8 +15,6 @@ const Community = () => {
   const [activeCommentProject, setActiveCommentProject] =
   useState<{ id: string; name: string } | null>(null)
 
-  const navigate = useNavigate();
-
   const fetchProjects = async () => {
     try {
       const {data} = await api.get('/api/project/published')
