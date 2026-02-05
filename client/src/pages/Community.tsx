@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import type { Project } from "../types";
 import { Loader2Icon, HeartIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import api from "@/configs/axios";
 import { toast } from "sonner";
 import LikeBurst from "@/effects/LikeBurst";
