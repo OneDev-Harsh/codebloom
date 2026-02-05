@@ -238,7 +238,7 @@ export const rollbackToVersion = async (req: Request, res: Response) => {
             return res.status(404).json({message: 'Project not found'})
         }
 
-        const version = project.versions.find((version) => version.id === versionId)
+        const version = project.versions.find((version: typeof project.versions[number]) => version.id === versionId)
 
         if(!version){
             return res.status(404).json({message: 'Version not found'})
@@ -329,7 +329,7 @@ export const getPublishedProjects = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     })
 
-    const formattedProjects = projects.map((project) => ({
+    const formattedProjects = projects.map((project: typeof projects[number]) => ({
       ...project,
       likedByMe: userId ? project.likes.length > 0 : false,
       likes: undefined,
@@ -553,7 +553,7 @@ export const getProjectComments = async (req: Request, res: Response) => {
     orderBy: { createdAt: "desc" },
     })
 
-    const formatted = comments.map(c => ({
+    const formatted = comments.map((c: typeof comments[number]) => ({
         ...c,
         likedByMe: userId ? c.likes.length > 0 : false,
         likesCount: c._count.likes,
