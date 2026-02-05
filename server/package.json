@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsx server.ts",
     "server": "nodemon --exec tsx server.ts",
-    "build": "tsc",
+    "build": "tsc && cp -r src/generated dist/generated",
     "dev": "tsx watch server.ts"
   },
   "keywords": [],
