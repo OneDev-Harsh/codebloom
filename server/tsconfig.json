@@ -12,7 +12,8 @@
         "typeRoots": ["./node_modules/@types", "./generated"]
     },
     "include": [
-        "./**/*.ts"
+        "./**/*.ts",
+        "generated"
     ],
     "exclude": [
         "node_modules"
