@@ -13,7 +13,9 @@
     },
     "include": [
         "./**/*.ts",
-        "generated"
+        "generated",
+        "src",
+        "types"
     ],
     "exclude": [
         "node_modules"
