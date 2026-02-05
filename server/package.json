@@ -6,7 +6,7 @@
   "scripts": {
     "start": "tsx server.ts",
     "server": "nodemon --exec tsx server.ts",
-    "build": "npx prisma generate && tsc && cp -r src/generated/prisma dist/generated/prisma",
+    "build": "npx prisma generate && tsc && mkdir -p dist/generated && cp -r src/generated/prisma dist/generated/prisma",
     "dev": "tsx watch server.ts"
   },
   "keywords": [],
