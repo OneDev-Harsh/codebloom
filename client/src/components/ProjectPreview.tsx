@@ -59,7 +59,7 @@ const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>(
 
       const brandingBadge = `
         <a
-          href="https://codebloom.ai"
+          href="https://codebloom-xmrt.onrender.com"
           target="_blank"
           style="
             position:fixed;

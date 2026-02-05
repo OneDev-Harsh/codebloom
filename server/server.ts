@@ -42,7 +42,7 @@ const clientDistPath = path.join(__dirname, '../../client/dist')
 app.use(express.static(clientDistPath))
 
 // SPA fallback (important)
-app.get('/', (req: Request, res: Response) => {
+app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(clientDistPath, 'index.html'))
 })
 
